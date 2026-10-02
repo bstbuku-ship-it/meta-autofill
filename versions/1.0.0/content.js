@@ -103,6 +103,33 @@
     return new TextEncoder().encode(JSON.stringify(value)).length;
   }
 
+  function validateConfig(value, checkButtonUrl = true) {
+    for (const m of ['comment', 'keyword']) {
+      const section = value[m];
+      const limit = LIMITS[m];
+      for (const k of Object.keys(section)) {
+        if (k === 'channels') continue;
+        const v = section[k];
+        if (k === 'keywords') {
+          if (!Array.isArray(v) || v.length > limit.keywords || v.some(x => typeof x !== 'string' || x.length > limit.keywordLength)) {
+            throw new Error(`${MODULE_NAMES[m]}的关键词超出限制`);
+          }
+        } else if (typeof v !== 'string' || v.length > limit[k]) {
+          throw new Error(`${MODULE_NAMES[m]}的“${k}”超出长度限制`);
+        }
+      }
+    }
+    if (configByteLength(value) > MAX_CONFIG_BYTES) throw new Error('配置内容过大（最大 100 KB）');
+    const buttonUrl = checkButtonUrl ? value.keyword.buttonUrl.trim() : '';
+    if (buttonUrl) {
+      let parsed;
+      try { parsed = new URL(buttonUrl); } catch (_) { throw new Error('按钮网址必须是有效的 http 或 https 地址'); }
+      if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
+        throw new Error('按钮网址只允许 http 或 https 地址，且不能包含账号密码');
+      }
+    }
+  }
+
   /* ---------- DOM 工具 ---------- */
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const txt = el => (el.textContent || '').replace(/\s+/g, ' ').trim();
@@ -641,7 +668,7 @@
     const c = cfg[tab];
     $('form').innerHTML =
       FIELDS[tab]
-        .map(([k, l, t]) => `<label>${l}</label>` + (t === 'area' ? `<textarea data-k="${k}" rows="${k === 'message' ? 7 : 3}"></textarea>` : `<input data-k="${k}">`))
+        .map(([k, l, t]) => `<label>${l}</label>` + (t === 'area' ? `<textarea data-k="${k}" maxlength="${LIMITS[tab][k]}" rows="${k === 'message' ? 7 : 3}"></textarea>` : `<input data-k="${k}" maxlength="${LIMITS[tab][k]}">`))
         .join('') +
       `<label>渠道</label><div class="ch"><label><input type="checkbox" data-ch="Messenger"> Messenger</label><label><input type="checkbox" data-ch="Instagram"> Instagram</label></div>`;
     root.querySelectorAll('#form [data-k]').forEach(e => {
@@ -664,6 +691,7 @@
   $('save').onclick = async () => {
     collect();
     cfg.metaLanguage = $('metaLanguage').value;
+    try { validateConfig(cfg); } catch (e) { log(`保存失败：${e.message}`, 'err'); return; }
     await store.set('af_cfg', cfg);
     log(`预设已保存（Meta 页面语言：${cfg.metaLanguage === 'auto' ? '自动识别' : cfg.metaLanguage}）`, 'ok');
   };
@@ -678,6 +706,7 @@
   $('exp').onclick = () => {
     collect();
     cfg.metaLanguage = $('metaLanguage').value;
+    try { validateConfig(cfg); } catch (e) { log(`导出失败：${e.message}`, 'err'); return; }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' }));
     a.download = 'meta-autofill-config.json';
@@ -726,6 +755,7 @@
   async function run(mod) {
     collect();
     cfg.metaLanguage = $('metaLanguage').value;
+    try { validateConfig(cfg, mod === 'keyword'); } catch (e) { log(`无法开始：${e.message}`, 'err'); return; }
     await store.set('af_cfg', cfg);
     const c = cfg[mod];
     logEl.textContent = '';

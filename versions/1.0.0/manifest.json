@@ -1,5 +1,8 @@
 {
   "manifest_version": 3,
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  },
   "name": "Meta-自动化预填助手",
   "version": "1.0.0",
   "description": "在 Meta 收件箱的自动化设置页面，一键填入预设内容（消息回复评论 / 关键词回复）。",
