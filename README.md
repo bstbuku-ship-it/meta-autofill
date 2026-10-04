@@ -40,18 +40,16 @@ Meta-自动化预填助手是一款用于 Meta Business Suite 消息/评论回�
 
 `https://m.me/你的账号`
 
-### 3\. 多语言
+3\. 多语言
+默认自动识别页面语言
+---
 
 插件支持：
 
 * 简体中文
 * 繁体中文
 * English
-* 自动识别
 
-默认语言为简体中文。
-
-语言设置只影响插件界面及相关文字识别，不会自动翻译用户填写的回复内容。
 
 ### 4\. 本地保存
 
@@ -96,7 +94,7 @@ Meta-自动化预填助手是一款用于 Meta Business Suite 消息/评论回�
 
 插件的自动操作页面范围已经限制在：
 
-`https://business.facebook.com/latest/inbox/\*`
+`https://business.facebook.com/latest/inbox/\\\*`
 
 因此插件并不是针对整个 Facebook 网站进行操作。
 
@@ -161,8 +159,8 @@ Meta-自动化预填助手是一款用于 Meta Business Suite 消息/评论回�
 本插件本身不需要读取 Facebook 密码或浏览器 Cookie 才能完成预填功能。
 
 
-常见问题
----
+
+## 常见问题
 
 ### 为什么修改了 JSON，浏览器里的内容没有自动变化？
 
